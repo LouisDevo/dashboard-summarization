@@ -1,16 +1,16 @@
 variable "project_id" {
   type = string
-  default = "YOUR_PROJECT_ID"
+  default = "looker-gemini-dashboard"
 }
 
 variable "deployment_region" {
   type = string
-  default = "YOUR_REGION"
+  default = "europe-west4"
 }
 
 variable "docker_image" {
     type = string
-    default = "YOUR_DOCKER_IMAGE_URL"
+    default = "europe-west4-docker.pkg.dev/looker-gemini-dashboard/dashboard-summarization-docker-repo/websocketserviceimage"
 }
 
 variable "cloud_run_service_name" {
