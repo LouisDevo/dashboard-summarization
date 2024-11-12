@@ -24,6 +24,8 @@ SOFTWARE.
 
 */
 
+
+const crypto = require('crypto');
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -42,6 +44,30 @@ const io = new Server(server, {
         origin: '*'
     }
 })
+
+const HMAC = process.env.HMAC
+
+function validateHMAC(data, receivedSignature, secretKey) {
+    try {
+      // Calculate the expected HMAC signature
+      const expectedSignature = crypto
+        .createHmac('sha256', secretKey)
+        .update(JSON.stringify(data))
+        .digest('hex');
+  
+      // Compare the received signature with the calculated signature
+    //   console.log(receivedSignature)
+      console.log(expectedSignature)
+      return crypto.timingSafeEqual(
+        Buffer.from(receivedSignature, 'hex'),
+        Buffer.from(expectedSignature, 'hex')
+      );
+    } catch (error) {
+      console.error("Error validating HMAC:", error);
+      return false;
+    }
+  }
+  
 
 app.get('/', (req, res) => {
     res.send('<h1>Hello world</h1>');
@@ -97,15 +123,21 @@ io.on('connection', async (socket) => {
   socket.on('my event', async (data) => {
     // setup looker sdk
     // Ignore any SDK environment variables for the node runtime
-    const settings = new NodeSettingsIniFile('','looker.ini',JSON.parse(data).instance)
+    const settings = new NodeSettingsIniFile('','looker.ini',JSON.parse(data).body.instance)
     const sdk = LookerNodeSDK.init40(settings)
+    const signature = JSON.parse(data).signature
 
+    if (!validateHMAC(JSON.parse(data).body, signature, HMAC)) {
+        console.log("Signature did not match")
+        return null
+    }
+    console.log("Signature matched")
     const querySummaries = []
-    for (const query of JSON.parse(data).queries) {
+    for (const query of JSON.parse(data).body.queries) {
         const queryData = await runLookerQuery(sdk,query.queryBody)
-    
+
             const context = `
-            Dashboard Detail: ${JSON.parse(data).description || ''} \n
+            Dashboard Detail: ${JSON.parse(data).body.description || ''} \n
             Query Details:  "Query Title: ${query.title} \n ${query.note_text !== '' || query.note_text !== null ? "Query Note: " + query.note_text : ''} \n Query Fields: ${query.queryBody.fields} \n Query Data: ${queryData} \n"
             `
             const queryPrompt = `
@@ -173,10 +205,8 @@ io.on('connection', async (socket) => {
                     }
                 ]
         }
-        
-        
+
         const streamingResp = await generativeModel.generateContentStream(prompt)
-        
         for await (const item of streamingResp.stream) {
             if(item.candidates[0].content.parts[0].text !== null) {
                 const formattedString = item.candidates[0].content.parts[0].text.split('\n').map(item => item.trim()).join('\n')

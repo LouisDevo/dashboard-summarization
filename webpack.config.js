@@ -26,7 +26,7 @@ SOFTWARE.
 
 const fs = require("fs");
 const path = require("path");
-const { DefinePlugin } = require("webpack");
+const { DefinePlugin, ProvidePlugin } = require("webpack");
 
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
   .BundleAnalyzerPlugin;
@@ -88,7 +88,12 @@ module.exports = {
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
-    fallback: { buffer: false },
+    fallback: { 
+      buffer: require.resolve('buffer'),
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify'),
+      vm: require.resolve('vm-browserify'),
+     },
   },
   devtool: "source-map",
   plugins: [
@@ -97,7 +102,13 @@ module.exports = {
     }),
     new DefinePlugin({
       'process.env': JSON.stringify(envVars)
-    })
+    }),
+    new ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
+    new ProvidePlugin({
+        process: 'process/browser',
+  }),
   ],
 };
 
