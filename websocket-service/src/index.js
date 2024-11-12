@@ -56,8 +56,6 @@ function validateHMAC(data, receivedSignature, secretKey) {
         .digest('hex');
   
       // Compare the received signature with the calculated signature
-    //   console.log(receivedSignature)
-      console.log(expectedSignature)
       return crypto.timingSafeEqual(
         Buffer.from(receivedSignature, 'hex'),
         Buffer.from(expectedSignature, 'hex')
@@ -193,17 +191,19 @@ io.on('connection', async (socket) => {
             ----------
             
             Make sure to always summarize the responses and not return the entire raw query data in the response. Remember to always include the summary attributes that are listed in the instructions above.
-            `
-            const prompt = {
-                contents: [
-                    {
-                        role: 'user', parts:[
-                            {
-                                text: queryPrompt
-                            }
-                        ]
-                    }
-                ]
+            `   
+        
+        
+        const prompt = {
+            contents: [
+                {
+                    role: 'user', parts:[
+                        {
+                            text: queryPrompt
+                        }
+                    ]
+                }
+            ]
         }
 
         const streamingResp = await generativeModel.generateContentStream(prompt)
