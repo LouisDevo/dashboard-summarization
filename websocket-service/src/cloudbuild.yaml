@@ -2,10 +2,10 @@ steps:
   # Docker Build
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t',
-           'europe-west4-docker.pkg.dev/looker-gemini-dashboard/dashboard-summarization-docker-repo/websocketserviceimage',
+           '<YOUR_REGION>-docker.pkg.dev/<YOUR_PROJECT_ID>/dashboard-summarization-docker-repo/websocketserviceimage',
            '.']
 
   # Docker Push
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push',
-           'europe-west4-docker.pkg.dev/looker-gemini-dashboard/dashboard-summarization-docker-repo/websocketserviceimage']
+           '<YOUR_REGION>-docker.pkg.dev/<YOUR_PROJECT_ID>/dashboard-summarization-docker-repo/websocketserviceimage']
