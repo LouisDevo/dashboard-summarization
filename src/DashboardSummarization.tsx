@@ -33,7 +33,6 @@ import MarkdownComponent from './components/MarkdownComponent'
 import useWorkspaceOauth from './hooks/useWorkspaceOauth'
 import { SummaryDataContext } from './contexts/SummaryDataContext'
 import useSlackOauth from './hooks/useSlackOauth'
-import * as crypto from 'crypto';
 
 interface DashboardMetadata {
   dashboardFilters: Filters | undefined,
@@ -53,14 +52,6 @@ interface DashboardMetadata {
     }
   }
 }
-
-function createHMACSignature(data: string, secretKey: any): string {
-  const hmac = crypto.createHmac('sha256', secretKey);
-  hmac.update(data);
-  return hmac.digest('hex');
-}
-const HMAC = process.env.HMAC
-
 
 export const DashboardSummarization: React.FC = () => {
   const { extensionSDK, tileHostData, core40SDK} = useContext(ExtensionContext)
@@ -287,7 +278,7 @@ export const DashboardSummarization: React.FC = () => {
         </div>
         <button className='button' style={{lineHeight:'20px', padding:'6px 16px'}} disabled={loading || !socket.connected} onClick={() => {
           setLoading(true)
-          socket.emit("my event", JSON.stringify({body:{...dashboardMetadata, instance:extensionSDK.lookerHostData?.hostOrigin?.split('https://')[1].split('.')[0]}, signature: createHMACSignature(JSON.stringify({...dashboardMetadata, instance:extensionSDK.lookerHostData?.hostOrigin?.split('https://')[1].split('.')[0]}), HMAC)}))
+          socket.emit("my event", JSON.stringify({...dashboardMetadata, instance:extensionSDK.lookerHostData?.hostOrigin?.split('https://')[1].split('.')[0]}))
         }}>{loading ? 'Generating' : 'Generate'} <img  style={{opacity: loading ? 0.2 : 1}}src="https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/summarize_auto/default/20px.svg"/></button>
       </div>
       :<></>

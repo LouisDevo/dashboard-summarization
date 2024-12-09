@@ -24,8 +24,6 @@ SOFTWARE.
 
 */
 
-
-const crypto = require('crypto');
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -121,21 +119,15 @@ io.on('connection', async (socket) => {
   socket.on('my event', async (data) => {
     // setup looker sdk
     // Ignore any SDK environment variables for the node runtime
-    const settings = new NodeSettingsIniFile('','looker.ini',JSON.parse(data).body.instance)
+    const settings = new NodeSettingsIniFile('','looker.ini',JSON.parse(data).instance)
     const sdk = LookerNodeSDK.init40(settings)
-    const signature = JSON.parse(data).signature
 
-    if (!validateHMAC(JSON.parse(data).body, signature, HMAC)) {
-        console.log("Signature did not match")
-        return null
-    }
-    console.log("Signature matched")
     const querySummaries = []
-    for (const query of JSON.parse(data).body.queries) {
+    for (const query of JSON.parse(data).queries) {
         const queryData = await runLookerQuery(sdk,query.queryBody)
-
+    
             const context = `
-            Dashboard Detail: ${JSON.parse(data).body.description || ''} \n
+            Dashboard Detail: ${JSON.parse(data).description || ''} \n
             Query Details:  "Query Title: ${query.title} \n ${query.note_text !== '' || query.note_text !== null ? "Query Note: " + query.note_text : ''} \n Query Fields: ${query.queryBody.fields} \n Query Data: ${queryData} \n"
             `
             const queryPrompt = `
@@ -205,8 +197,10 @@ io.on('connection', async (socket) => {
                 }
             ]
         }
-
+        
+        
         const streamingResp = await generativeModel.generateContentStream(prompt)
+        
         for await (const item of streamingResp.stream) {
             if(item.candidates[0].content.parts[0].text !== null) {
                 const formattedString = item.candidates[0].content.parts[0].text.split('\n').map(item => item.trim()).join('\n')
